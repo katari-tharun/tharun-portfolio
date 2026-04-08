@@ -147,12 +147,48 @@ export default function Home() {
 
   const techArcs = useMemo(
     () => [
-      { startLat: 54.5973, startLng: -5.9301, endLat: 51.5072, endLng: -0.1276, color: ["#38bdf8", "#a78bfa"] },
-      { startLat: 54.5973, startLng: -5.9301, endLat: 12.9716, endLng: 77.5946, color: ["#38bdf8", "#34d399"] },
-      { startLat: 54.5973, startLng: -5.9301, endLat: 1.3521, endLng: 103.8198, color: ["#38bdf8", "#f59e0b"] },
-      { startLat: 54.5973, startLng: -5.9301, endLat: 35.6762, endLng: 139.6503, color: ["#38bdf8", "#fb7185"] },
-      { startLat: 54.5973, startLng: -5.9301, endLat: 47.6062, endLng: -122.3321, color: ["#38bdf8", "#60a5fa"] },
-      { startLat: 54.5973, startLng: -5.9301, endLat: 50.1109, endLng: 8.6821, color: ["#38bdf8", "#22c55e"] },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 51.5072,
+        endLng: -0.1276,
+        color: ["#38bdf8", "#a78bfa"],
+      },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 12.9716,
+        endLng: 77.5946,
+        color: ["#38bdf8", "#34d399"],
+      },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 1.3521,
+        endLng: 103.8198,
+        color: ["#38bdf8", "#f59e0b"],
+      },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 35.6762,
+        endLng: 139.6503,
+        color: ["#38bdf8", "#fb7185"],
+      },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 47.6062,
+        endLng: -122.3321,
+        color: ["#38bdf8", "#60a5fa"],
+      },
+      {
+        startLat: 54.5973,
+        startLng: -5.9301,
+        endLat: 50.1109,
+        endLng: 8.6821,
+        color: ["#38bdf8", "#22c55e"],
+      },
     ],
     []
   );
@@ -185,9 +221,11 @@ export default function Home() {
 
     globe.pointOfView({ lat: 20, lng: 10, altitude: 2.15 }, 0);
 
-    const material = globe.globeMaterial();
+    const material: any = globe.globeMaterial();
     if (material) {
-      material.emissive = new (window as any).THREE?.Color?.("#0a1230") ?? material.emissive;
+      if (material.emissive && typeof material.emissive.set === "function") {
+        material.emissive.set("#0a1230");
+      }
       material.emissiveIntensity = 0.12;
       material.shininess = 1.2;
     }
