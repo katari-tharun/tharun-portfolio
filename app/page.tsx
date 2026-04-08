@@ -8,8 +8,11 @@ const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 export default function Home() {
   const [darkMode, setDarkMode] = useState(true);
   const [timeText, setTimeText] = useState("");
+  const [contactGlobeSize, setContactGlobeSize] = useState({
+    width: 460,
+    height: 380,
+  });
 
-  const techGlobeRef = useRef<any>(null);
   const contactGlobeRef = useRef<any>(null);
 
   useEffect(() => {
@@ -29,15 +32,45 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setContactGlobeSize({ width: 290, height: 260 });
+      } else if (window.innerWidth < 1024) {
+        setContactGlobeSize({ width: 360, height: 300 });
+      } else {
+        setContactGlobeSize({ width: 460, height: 380 });
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!contactGlobeRef.current) return;
+
+    const globe = contactGlobeRef.current;
+    const controls = globe.controls();
+
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.55;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.minDistance = 160;
+    controls.maxDistance = 160;
+
+    globe.pointOfView({ lat: 54.6, lng: -5.9, altitude: 1.65 }, 0);
+  }, [contactGlobeSize]);
+
   const isDark = darkMode;
 
-  const textures = {
+  const globeTextures = {
     globeImageUrl:
       "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
     bumpImageUrl:
       "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png",
-    backgroundImageUrl:
-      "https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png",
   };
 
   const experiences = [
@@ -129,69 +162,28 @@ export default function Home() {
     "API Integration",
     "Deployment Workflows",
     "AI Systems",
-    "DevOps Tooling",
   ];
 
-  const techPoints = useMemo(
-    () => [
-      { name: "Belfast", lat: 54.5973, lng: -5.9301, size: 0.38, color: "#38bdf8" },
-      { name: "London", lat: 51.5072, lng: -0.1276, size: 0.22, color: "#a78bfa" },
-      { name: "Bengaluru", lat: 12.9716, lng: 77.5946, size: 0.28, color: "#34d399" },
-      { name: "Singapore", lat: 1.3521, lng: 103.8198, size: 0.2, color: "#f59e0b" },
-      { name: "Tokyo", lat: 35.6762, lng: 139.6503, size: 0.18, color: "#fb7185" },
-      { name: "Seattle", lat: 47.6062, lng: -122.3321, size: 0.2, color: "#60a5fa" },
-      { name: "Frankfurt", lat: 50.1109, lng: 8.6821, size: 0.16, color: "#22c55e" },
-    ],
-    []
-  );
-
-  const techArcs = useMemo(
-    () => [
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 51.5072,
-        endLng: -0.1276,
-        color: ["#38bdf8", "#a78bfa"],
-      },
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 12.9716,
-        endLng: 77.5946,
-        color: ["#38bdf8", "#34d399"],
-      },
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 1.3521,
-        endLng: 103.8198,
-        color: ["#38bdf8", "#f59e0b"],
-      },
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 35.6762,
-        endLng: 139.6503,
-        color: ["#38bdf8", "#fb7185"],
-      },
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 47.6062,
-        endLng: -122.3321,
-        color: ["#38bdf8", "#60a5fa"],
-      },
-      {
-        startLat: 54.5973,
-        startLng: -5.9301,
-        endLat: 50.1109,
-        endLng: 8.6821,
-        color: ["#38bdf8", "#22c55e"],
-      },
-    ],
-    []
-  );
+  const orbitGroups = [
+    {
+      radius: 90,
+      duration: 18,
+      reverse: false,
+      items: ["AWS", "Docker", "K8s", "Argo CD"],
+    },
+    {
+      radius: 140,
+      duration: 26,
+      reverse: true,
+      items: ["Python", "Java", "React", "Spring", "PostgreSQL"],
+    },
+    {
+      radius: 190,
+      duration: 34,
+      reverse: false,
+      items: ["REST APIs", "Postman", "QGIS", "Node.js", "Oracle", "DBeaver"],
+    },
+  ];
 
   const contactPoint = useMemo(
     () => [
@@ -199,53 +191,12 @@ export default function Home() {
         name: "Belfast",
         lat: 54.5973,
         lng: -5.9301,
-        size: 0.5,
+        size: 0.55,
         color: "#ff3b3b",
       },
     ],
     []
   );
-
-  useEffect(() => {
-    if (!techGlobeRef.current) return;
-
-    const globe = techGlobeRef.current;
-    const controls = globe.controls();
-
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.45;
-    controls.enableZoom = false;
-    controls.enablePan = false;
-    controls.minDistance = 260;
-    controls.maxDistance = 260;
-
-    globe.pointOfView({ lat: 20, lng: 10, altitude: 2.15 }, 0);
-
-    const material: any = globe.globeMaterial();
-    if (material) {
-      if (material.emissive && typeof material.emissive.set === "function") {
-        material.emissive.set("#0a1230");
-      }
-      material.emissiveIntensity = 0.12;
-      material.shininess = 1.2;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!contactGlobeRef.current) return;
-
-    const globe = contactGlobeRef.current;
-    const controls = globe.controls();
-
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.6;
-    controls.enableZoom = false;
-    controls.enablePan = false;
-    controls.minDistance = 180;
-    controls.maxDistance = 180;
-
-    globe.pointOfView({ lat: 54.7, lng: -5.8, altitude: 1.6 }, 0);
-  }, []);
 
   return (
     <main
@@ -264,7 +215,43 @@ export default function Home() {
             transform: translateY(0px);
           }
           50% {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
+          }
+        }
+
+        @keyframes orbitForward {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes orbitReverse {
+          from {
+            transform: rotate(360deg);
+          }
+          to {
+            transform: rotate(0deg);
+          }
+        }
+
+        @keyframes counterOrbitForward {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(-360deg);
+          }
+        }
+
+        @keyframes counterOrbitReverse {
+          from {
+            transform: rotate(-360deg);
+          }
+          to {
+            transform: rotate(0deg);
           }
         }
 
@@ -280,7 +267,7 @@ export default function Home() {
             : "border-slate-200 bg-white/80"
         }`}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <a href="#home" className="flex items-center gap-3">
             <div
               className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold ${
@@ -302,7 +289,7 @@ export default function Home() {
           </a>
 
           <nav
-            className={`hidden items-center gap-7 text-sm md:flex ${
+            className={`hidden items-center gap-6 text-sm md:flex ${
               isDark ? "text-slate-300" : "text-slate-600"
             }`}
           >
@@ -353,7 +340,7 @@ export default function Home() {
           }`}
         />
 
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-[1.05fr_0.95fr] md:py-24">
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <div>
             <p
               className={`mb-6 inline-flex rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] ${
@@ -366,14 +353,14 @@ export default function Home() {
             </p>
 
             <div
-              className={`rounded-[30px] border shadow-2xl ${
+              className={`rounded-[28px] border shadow-2xl ${
                 isDark
                   ? "border-cyan-400/10 bg-[#071124]"
                   : "border-slate-200 bg-white"
               }`}
             >
               <div
-                className={`flex items-center justify-between rounded-t-[30px] border-b px-5 py-4 ${
+                className={`flex items-center justify-between rounded-t-[28px] border-b px-5 py-4 ${
                   isDark
                     ? "border-white/10 bg-[#06101f]"
                     : "border-slate-200 bg-slate-50"
@@ -497,27 +484,26 @@ export default function Home() {
 
           <div className="relative flex items-center justify-center">
             <div
-              className={`relative h-[560px] w-full max-w-[520px] overflow-hidden rounded-[36px] border shadow-2xl ${
+              className={`relative w-full max-w-[480px] overflow-hidden rounded-[32px] border p-6 shadow-2xl ${
                 isDark
                   ? "border-white/10 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.18),transparent_38%),linear-gradient(180deg,#0b1228_0%,#060b18_100%)]"
                   : "border-slate-200 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.10),transparent_38%),linear-gradient(180deg,#ffffff_0%,#eef2ff_100%)]"
               }`}
             >
-              <div className="absolute inset-0">
+              <div className="relative flex min-h-[420px] items-center justify-center">
                 {heroTags.map((tag, index) => {
                   const positions = [
-                    "left-7 top-8",
-                    "right-7 top-20",
-                    "left-10 bottom-28",
-                    "right-8 bottom-24",
-                    "left-1/2 top-10 -translate-x-1/2",
-                    "right-20 top-1/2",
+                    "left-4 top-4",
+                    "right-4 top-16",
+                    "left-6 bottom-20",
+                    "right-4 bottom-16",
+                    "left-1/2 top-4 -translate-x-1/2",
                   ];
 
                   return (
                     <div
                       key={tag}
-                      className={`absolute rounded-full border px-4 py-2 text-sm tracking-[0.14em] ${positions[index]} ${
+                      className={`absolute rounded-full border px-4 py-2 text-xs tracking-[0.16em] ${positions[index]} ${
                         isDark
                           ? "border-white/10 bg-white/5 text-slate-300"
                           : "border-slate-300 bg-white text-slate-600"
@@ -527,11 +513,9 @@ export default function Home() {
                     </div>
                   );
                 })}
-              </div>
 
-              <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className={`float-slow relative flex h-[330px] w-[250px] items-center justify-center rounded-[28px] border shadow-2xl ${
+                  className={`float-slow relative flex h-[300px] w-[220px] items-center justify-center rounded-[26px] border shadow-2xl ${
                     isDark
                       ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.03))]"
                       : "border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(241,245,249,1))]"
@@ -556,11 +540,11 @@ export default function Home() {
                       Software Engineer
                     </p>
                     <p
-                      className={`mt-4 max-w-[180px] text-sm leading-6 ${
+                      className={`mt-4 max-w-[170px] text-sm leading-6 ${
                         isDark ? "text-slate-400" : "text-slate-500"
                       }`}
                     >
-                      Add a real photo later by placing
+                      Add your real photo later by placing
                       <span className="font-semibold"> profile.jpg </span>
                       in your public folder.
                     </p>
@@ -572,95 +556,107 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 text-center">
+      <section className="mx-auto max-w-5xl px-6 py-16 text-center">
         <p
           className={`text-sm font-semibold uppercase tracking-[0.25em] ${
             isDark ? "text-slate-400" : "text-slate-500"
           }`}
         >
-          My Tech Stack Globe
+          My Tech Stack Orbit
         </p>
         <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">
-          Satellite globe with connected systems
+          A visual view of the tools I work with
         </h2>
 
         <div
-          className={`relative mx-auto mt-14 overflow-hidden rounded-[36px] border ${
+          className={`relative mx-auto mt-12 h-[500px] w-full max-w-[560px] overflow-hidden rounded-[32px] border ${
             isDark
-              ? "border-white/10 bg-[linear-gradient(180deg,#040816_0%,#081427_100%)]"
-              : "border-slate-200 bg-white"
+              ? "border-white/10 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.12),transparent_32%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.12),transparent_26%),rgba(255,255,255,0.03)]"
+              : "border-slate-200 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_32%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.08),transparent_26%),white]"
           }`}
         >
-          <div className="grid items-center gap-8 px-6 py-8 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="h-[560px]">
-              <Globe
-                ref={techGlobeRef}
-                width={700}
-                height={560}
-                backgroundColor="rgba(0,0,0,0)"
-                globeImageUrl={textures.globeImageUrl}
-                bumpImageUrl={textures.bumpImageUrl}
-                backgroundImageUrl={textures.backgroundImageUrl}
-                pointsData={techPoints}
-                pointAltitude="size"
-                pointRadius={0.5}
-                pointColor="color"
-                pointLabel="name"
-                arcsData={techArcs}
-                arcColor="color"
-                arcAltitude={0.22}
-                arcStroke={0.7}
-                arcDashLength={0.45}
-                arcDashGap={0.14}
-                arcDashAnimateTime={2200}
-                atmosphereColor="#60a5fa"
-                atmosphereAltitude={0.18}
-              />
+          <div
+            className={`absolute left-1/2 top-1/2 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+              isDark ? "border-white/10" : "border-slate-200"
+            }`}
+          />
+          <div
+            className={`absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+              isDark ? "border-white/10" : "border-slate-200"
+            }`}
+          />
+          <div
+            className={`absolute left-1/2 top-1/2 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+              isDark ? "border-white/10" : "border-slate-200"
+            }`}
+          />
+
+          <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+            <div
+              className={`flex h-24 w-24 items-center justify-center rounded-full border text-center text-sm font-semibold shadow-2xl ${
+                isDark
+                  ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-200"
+                  : "border-cyan-300 bg-cyan-50 text-cyan-700"
+              }`}
+            >
+              Core Stack
             </div>
+          </div>
 
-            <div className="text-left">
-              <p
-                className={`text-sm font-semibold uppercase tracking-[0.25em] ${
-                  isDark ? "text-cyan-300" : "text-cyan-700"
-                }`}
-              >
-                Infrastructure View
-              </p>
-              <h3 className="mt-4 text-3xl font-bold leading-tight">
-                Real satellite globe instead of a flat circle
-              </h3>
-              <p
-                className={`mt-5 text-lg leading-8 ${
-                  isDark ? "text-slate-300" : "text-slate-600"
-                }`}
-              >
-                This globe uses an actual earth texture, terrain bump mapping,
-                atmospheric glow, live markers, and animated arcs so the section
-                feels much closer to the premium globe style you wanted.
-              </p>
+          {orbitGroups.map((group, groupIndex) => (
+            <div
+              key={groupIndex}
+              className="absolute inset-0"
+              style={{
+                animation: `${
+                  group.reverse ? "orbitReverse" : "orbitForward"
+                } ${group.duration}s linear infinite`,
+              }}
+            >
+              {group.items.map((item, itemIndex) => {
+                const angle = (360 / group.items.length) * itemIndex;
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                {["AWS", "Kubernetes", "Argo CD", "REST APIs", "Docker", "PostgreSQL"].map(
-                  (item) => (
-                    <span
-                      key={item}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium ${
+                return (
+                  <div
+                    key={item}
+                    className="absolute left-1/2 top-1/2"
+                    style={{
+                      transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(${group.radius}px)`,
+                    }}
+                  >
+                    <div
+                      style={{
+                        animation: `${
+                          group.reverse
+                            ? "counterOrbitReverse"
+                            : "counterOrbitForward"
+                        } ${group.duration}s linear infinite`,
+                      }}
+                      className={`rounded-full border px-4 py-2 text-sm font-medium shadow-lg ${
                         isDark
-                          ? "border-white/10 bg-white/5 text-slate-200"
-                          : "border-slate-300 bg-slate-50 text-slate-700"
+                          ? "border-white/10 bg-[#081425] text-slate-200"
+                          : "border-slate-200 bg-white text-slate-700"
                       }`}
                     >
                       {item}
-                    </span>
-                  )
-                )}
-              </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          ))}
+
+          <div
+            className={`absolute inset-x-0 bottom-6 text-center ${
+              isDark ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
+            Cloud, backend, API, and platform tools in continuous motion
           </div>
         </div>
       </section>
 
-      <section id="about" className="mx-auto max-w-7xl px-6 py-20">
+      <section id="about" className="mx-auto max-w-6xl px-6 py-20">
         <div className="max-w-3xl">
           <p
             className={`text-sm font-semibold uppercase tracking-[0.25em] ${
@@ -694,7 +690,7 @@ export default function Home() {
             : "border-slate-200 bg-white"
         }`}
       >
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-6xl px-6">
           <p
             className={`text-sm font-semibold uppercase tracking-[0.25em] ${
               isDark ? "text-slate-400" : "text-slate-500"
@@ -710,7 +706,7 @@ export default function Home() {
             {experiences.map((exp) => (
               <div
                 key={`${exp.role}-${exp.period}`}
-                className={`rounded-[30px] border p-7 shadow-xl ${
+                className={`rounded-[28px] border p-7 shadow-xl ${
                   isDark
                     ? "border-white/10 bg-white/5"
                     : "border-slate-200 bg-slate-50"
@@ -748,7 +744,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="projects" className="mx-auto max-w-7xl px-6 py-20">
+      <section id="projects" className="mx-auto max-w-6xl px-6 py-20">
         <p
           className={`text-sm font-semibold uppercase tracking-[0.25em] ${
             isDark ? "text-slate-400" : "text-slate-500"
@@ -764,7 +760,7 @@ export default function Home() {
           {projects.map((project) => (
             <div
               key={project.title}
-              className={`group rounded-[30px] border p-7 shadow-xl transition duration-300 hover:-translate-y-1 ${
+              className={`group rounded-[28px] border p-7 shadow-xl transition duration-300 hover:-translate-y-1 ${
                 isDark
                   ? "border-white/10 bg-white/5 hover:bg-white/10"
                   : "border-slate-200 bg-white hover:shadow-2xl"
@@ -798,7 +794,7 @@ export default function Home() {
             : "border-slate-200 bg-white"
         }`}
       >
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-6xl px-6">
           <p
             className={`text-sm font-semibold uppercase tracking-[0.25em] ${
               isDark ? "text-slate-400" : "text-slate-500"
@@ -814,7 +810,7 @@ export default function Home() {
             {skillGroups.map((group) => (
               <div
                 key={group.title}
-                className={`rounded-[30px] border p-7 shadow-xl ${
+                className={`rounded-[28px] border p-7 shadow-xl ${
                   isDark
                     ? "border-white/10 bg-white/5"
                     : "border-slate-200 bg-slate-50"
@@ -841,7 +837,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="certifications" className="mx-auto max-w-7xl px-6 py-20">
+      <section id="certifications" className="mx-auto max-w-6xl px-6 py-20">
         <p
           className={`text-sm font-semibold uppercase tracking-[0.25em] ${
             isDark ? "text-slate-400" : "text-slate-500"
@@ -869,15 +865,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="contact" className="mx-auto max-w-7xl px-6 py-20">
+      <section id="contact" className="mx-auto max-w-6xl px-6 py-20">
         <div
-          className={`overflow-hidden rounded-[34px] border shadow-2xl ${
+          className={`overflow-hidden rounded-[32px] border shadow-2xl ${
             isDark
               ? "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(34,211,238,0.06),rgba(168,85,247,0.06))]"
               : "border-slate-200 bg-[linear-gradient(135deg,rgba(248,250,252,1),rgba(224,242,254,1),rgba(243,232,255,1))]"
           }`}
         >
-          <div className="grid md:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid md:grid-cols-[1.1fr_0.9fr]">
             <div className="p-8 md:p-10">
               <p
                 className={`text-sm font-semibold uppercase tracking-[0.25em] ${
@@ -892,7 +888,7 @@ export default function Home() {
               </h2>
 
               <p
-                className={`mt-6 max-w-2xl text-lg leading-8 ${
+                className={`mt-6 max-w-xl text-lg leading-8 ${
                   isDark ? "text-slate-300" : "text-slate-600"
                 }`}
               >
@@ -950,39 +946,38 @@ export default function Home() {
             </div>
 
             <div
-              className={`relative min-h-[420px] border-l ${
+              className={`relative flex items-center justify-center border-l p-6 ${
                 isDark
                   ? "border-white/10 bg-[linear-gradient(180deg,#06101d_0%,#08111f_100%)]"
                   : "border-slate-200 bg-white"
               }`}
             >
-              <div className="h-[420px] w-full">
+              <div className="relative flex items-center justify-center">
                 <Globe
                   ref={contactGlobeRef}
-                  width={520}
-                  height={420}
+                  width={contactGlobeSize.width}
+                  height={contactGlobeSize.height}
                   backgroundColor="rgba(0,0,0,0)"
-                  globeImageUrl={textures.globeImageUrl}
-                  bumpImageUrl={textures.bumpImageUrl}
-                  backgroundImageUrl={textures.backgroundImageUrl}
+                  globeImageUrl={globeTextures.globeImageUrl}
+                  bumpImageUrl={globeTextures.bumpImageUrl}
                   pointsData={contactPoint}
-                  pointAltitude="size"
-                  pointRadius={0.8}
-                  pointColor="color"
-                  pointLabel="name"
+                  pointAltitude={(d: any) => d.size}
+                  pointRadius={0.65}
+                  pointColor={(d: any) => d.color}
+                  pointLabel={(d: any) => d.name}
                   atmosphereColor="#60a5fa"
-                  atmosphereAltitude={0.18}
+                  atmosphereAltitude={0.16}
                 />
-              </div>
 
-              <div
-                className={`absolute bottom-6 left-6 rounded-2xl border px-4 py-3 text-sm shadow-lg ${
-                  isDark
-                    ? "border-white/10 bg-black/40 text-slate-200"
-                    : "border-slate-200 bg-white/90 text-slate-700"
-                }`}
-              >
-                Belfast, UK
+                <div
+                  className={`absolute bottom-3 left-3 rounded-2xl border px-4 py-3 text-sm shadow-lg ${
+                    isDark
+                      ? "border-white/10 bg-black/40 text-slate-200"
+                      : "border-slate-200 bg-white/90 text-slate-700"
+                  }`}
+                >
+                  Belfast, UK
+                </div>
               </div>
             </div>
           </div>
@@ -996,7 +991,7 @@ export default function Home() {
             : "border-slate-200 text-slate-500"
         }`}
       >
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 text-sm md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 text-sm md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Sai Tharun Katari. All rights reserved.</p>
           <p>Belfast, UK</p>
         </div>
